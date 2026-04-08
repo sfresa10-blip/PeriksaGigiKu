@@ -1,0 +1,9 @@
+{
+  "name": "PeriksaGigiKu - Sistem Asuhan Kesehatan Gigi",
+  "description": "Platform manajemen asuhan kesehatan gigi dan mulut individu sesuai standar WHO dan Kemenkes RI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

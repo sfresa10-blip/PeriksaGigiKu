@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: patients
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - nik: string (required, 16 chars)
+    //   - gender: string (required, 'L' or 'P')
+    //   - age: number (required, 0-150)
+    //   - phone: string (required, 10-15 chars)
+    //   - insurance: string (required)
+    //   - rm: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: medical_records
+    // Fields:
+    //   - anamnesis: map (required)
+    //   - clinical: map (required)
+    //   - treatment: map (required)
+    //   - updatedAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidPatient(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.nik is string &&
+             data.gender is string &&
+             data.age is number &&
+             data.phone is string &&
+             data.insurance is string &&
+             data.rm is string &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMedicalRecord(data) {
+      return data.updatedAt is timestamp;
+    }
+
+    // Patients Collection
+    match /patients/{patientId} {
+      allow read: if true;
+      allow create: if hasRequiredFields(['name', 'nik', 'gender', 'age', 'phone', 'insurance', 'rm', 'createdAt']) && isValidPatient(request.resource.data);
+      allow update: if isValidPatient(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Medical Records Collection
+    match /medical_records/{patientId} {
+      allow read: if true;
+      allow write: if isValidMedicalRecord(request.resource.data);
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
